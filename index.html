@@ -13,29 +13,35 @@
             <div class="logo">📧</div>
             <h1>Gmail Sorter</h1>
             <p class="subtitle">Casino • OTP • Social • Shopping • Auto-sorted</p>
-            <button onclick="signInWithGoogle()" class="google-signin-btn">Sign in with Google</button>
+            
+            <!-- FIX: Use a real button with ID instead of inline onclick -->
+            <button id="signInButton" class="google-signin-btn">Sign in with Google</button>
+            
+            <!-- DEBUG: Show errors -->
+            <div id="errorMessage" style="color: red; margin-top: 20px; display: none;"></div>
         </div>
     </div>
 
     <div id="appScreen" class="screen hidden">
         <header class="app-header">
             <h1>Inbox</h1>
-            <button onclick="signOut()" class="icon-btn">🚪</button>
+            <button id="signOutBtn" class="icon-btn">🚪</button>
             <div class="category-pills" id="categoryPills"></div>
         </header>
         <main class="email-list" id="emailList"></main>
     </div>
 
     <script>
+        // Configuration
         const CONFIG = {
             GOOGLE_CLIENT_ID: '469028529540-399r7m34gkt3n05r7ss572jmkpbl5np8.apps.googleusercontent.com',
-            GEMINI_API_KEY: AIzaSyAybN58q8KVEJ9yrlksgdPS5YX2K2vKNh0',
+            GEMINI_API_KEY: 'PASTE_YOUR_GEMINI_KEY_HERE',
             GMAIL_SCOPES: 'https://www.googleapis.com/auth/gmail.readonly',
             MAX_EMAILS: 50,
         };
 
         const EMAIL_CATEGORIES = {
-            casino: { name: 'Casino', icon: '🎰', color: 'casino', keywords: ['casino','bet','poker','slots','blackjack','roulette','gambling','wager','bonus','deposit'] },
+            casino: { name: 'Casino', icon: '🎰', color: 'casino', keywords: ['casino','bet','poker','slots','blackjack','roulette','gambling','wager','bonus'] },
             otp: { name: 'OTP/2FA', icon: '🔐', color: 'otp', keywords: ['code','verification','otp','2fa','verify','login code','security'] },
             social: { name: 'Social', icon: '👥', color: 'social', keywords: ['facebook','twitter','instagram','linkedin','social','friend','follow','comment'] },
             shopping: { name: 'Shopping', icon: '🛍️', color: 'shopping', keywords: ['order','amazon','ebay','shipping','delivery','purchase','payment','receipt'] },
@@ -46,14 +52,53 @@
 
         let accessToken = null;
 
+        // DEBUG: Check if script is loading
+        console.log('✅ App loaded. CONFIG:', CONFIG);
+        console.log('✅ Current URL:', window.location.href);
+
+        // MAIN FIX: Attach event listener AFTER DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded, attaching event listeners');
+            
+            const signInBtn = document.getElementById('signInButton');
+            const signOutBtn = document.getElementById('signOutBtn');
+            
+            if (signInBtn) {
+                signInBtn.addEventListener('click', signInWithGoogle);
+                console.log('✅ Sign-in button listener attached');
+            } else {
+                console.error('❌ Sign-in button not found!');
+            }
+            
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', signOut);
+            }
+            
+            // Check OAuth callback
+            if (handleOAuth()) {
+                loadEmails();
+            } else if (localStorage.getItem('gmail_access_token')) {
+                accessToken = localStorage.getItem('gmail_access_token');
+                loadEmails();
+            }
+        });
+
         function signInWithGoogle() {
+            console.log('🔄 Starting Google sign-in...');
+            
             const clientId = CONFIG.GOOGLE_CLIENT_ID;
             const redirectUri = window.location.origin + window.location.pathname;
             const scope = encodeURIComponent(CONFIG.GMAIL_SCOPES);
-            window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}`;
+            
+            // IOS FIX: Use direct window.location instead of popup
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&prompt=consent`;
+            
+            console.log('🌐 Redirecting to:', authUrl);
+            window.location.href = authUrl;
         }
 
         function signOut() {
+            console.log('🚪 Signing out...');
             localStorage.removeItem('gmail_access_token');
             window.location.reload();
         }
@@ -61,6 +106,7 @@
         function handleOAuth() {
             const hash = window.location.hash;
             if (hash && hash.includes('access_token')) {
+                console.log('✅ OAuth callback detected');
                 const params = new URLSearchParams(hash.substring(1));
                 accessToken = params.get('access_token');
                 localStorage.setItem('gmail_access_token', accessToken);
@@ -72,6 +118,8 @@
 
         async function loadEmails() {
             try {
+                console.log('📧 Loading emails...');
+                
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('appScreen').classList.remove('hidden');
 
@@ -83,6 +131,8 @@
                     `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${CONFIG.MAX_EMAILS}&q=in:inbox`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
                 const emails = await Promise.all(data.messages.map(msg => fetchEmail(msg.id, token)));
@@ -104,10 +154,12 @@
                 }
 
                 renderEmails(emails);
+                console.log('✅ Emails loaded and categorized');
                 
             } catch (error) {
-                alert('Error: ' + error.message);
-                signOut();
+                console.error('❌ Error loading emails:', error);
+                document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
             }
         }
 
@@ -188,16 +240,7 @@
         }
 
         function filterEmails(category) {
-            // Simple filter - would need to store emails globally for full functionality
             alert('Filtering by ' + category + ' - refresh to see all');
-        }
-
-        // Initialize
-        if (handleOAuth()) {
-            loadEmails();
-        } else if (localStorage.getItem('gmail_access_token')) {
-            accessToken = localStorage.getItem('gmail_access_token');
-            loadEmails();
         }
     </script>
 </body>
