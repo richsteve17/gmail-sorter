@@ -1,11 +1,34 @@
-# Gmail Sorter
+# gmail-sorter
 
-AI-powered email organization for iOS.
+AI email organizer for iOS 
 
-## Setup
+## 🎯 Purpose
+This repository contains a general-purpose code project.
 
-1. Get Gmail API credentials from: https://console.cloud.google.com/
-2. Enable Gmail API and create OAuth 2.0 Client ID
-3. Add redirect URI: `https://your-site-url/index.html`
-4. Get Gemini API key from: https://makersuite.google.com/app/apikey
-5. Edit `index.html` and replace `PASTE_YOUR_GEMINI_KEY_HERE` with your key
+## 🛠️ Tech Stack
+- **Primary Language**: HTML
+
+## 📦 Installation
+```bash
+# Clone the repository
+git clone https://github.com/richsteve17/gmail-sorter.git
+cd gmail-sorter
+# Refer to project configuration for setup and dependencies
+```
+## 💡 Usage
+Refer to the entry points above or inspect the source code for execution instructions.
+## 🤝 Contributing
+Contributions are welcome! Please open an issue or submit a pull request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+- Built for [gmail-sorter](https://github.com/richsteve17/gmail-sorter).
+- Generated with ❤️ using custom code-aware documentation tools.
